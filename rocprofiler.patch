@@ -20,6 +20,45 @@ index 7b7c472..0aba3ed 100644
 -    HINTS ${CMAKE_PREFIX_PATH}
 -    PATHS ${ROCM_ROOT_DIR}
 -    PATH_SUFFIXES lib REQUIRED)
+diff --git a/src/api/CMakeLists.txt b/src/api/CMakeLists.txt
+index 61782f0..16c83bf 100644
+--- a/src/api/CMakeLists.txt
++++ b/src/api/CMakeLists.txt
+@@ -51,15 +51,6 @@ find_file(
+     NO_DEFAULT_PATH REQUIRED)
+ get_filename_component(HSA_RUNTIME_INC_PATH ${HSA_H} DIRECTORY)
+
+-find_library(
+-    AQLPROFILE_LIB "libhsa-amd-aqlprofile64.so"
+-    HINTS ${CMAKE_PREFIX_PATH}
+-    PATHS ${ROCM_PATH}
+-    PATH_SUFFIXES lib)
+-
+-if(NOT AQLPROFILE_LIB)
+-    message(FATAL_ERROR "AQL_PROFILE not installed. Please install hsa-amd-aqlprofile!")
+-endif()
+
+ # ########################################################################################
+ # Adding Old Library Files
+@@ -247,7 +238,7 @@ target_include_directories(
+     PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/rocprofiler>
+     PRIVATE ${LIB_DIR} ${ROOT_DIR} ${PROJECT_SOURCE_DIR}/include/rocprofiler)
+ target_link_libraries(
+-    ${ROCPROFILER_TARGET} PRIVATE ${AQLPROFILE_LIB} hsa-runtime64::hsa-runtime64 c stdc++
++    ${ROCPROFILER_TARGET} PRIVATE hsa-runtime64::hsa-runtime64 c stdc++
+                                   dl rocprofiler::build-flags rocprofiler::memcheck)
+
+ get_target_property(ROCPROFILER_LIBRARY_V1_NAME ${ROCPROFILER_TARGET} NAME)
+@@ -325,8 +316,7 @@ target_link_options(
+     -Wl,--no-undefined)
+ target_link_libraries(
+     rocprofiler-v2
+-    PRIVATE ${AQLPROFILE_LIB}
+-            hsa-runtime64::hsa-runtime64
++    PRIVATE hsa-runtime64::hsa-runtime64
+             Threads::Threads
+             atomic
+             numa
 diff --git a/src/util/hsa_rsrc_factory.cpp b/src/util/hsa_rsrc_factory.cpp
 index 2c47186..6b39634 100644
 --- a/src/util/hsa_rsrc_factory.cpp
