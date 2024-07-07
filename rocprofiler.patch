@@ -1,0 +1,66 @@
+diff --git a/cmake_modules/rocprofiler_env.cmake b/cmake_modules/rocprofiler_env.cmake
+index 7b7c472..0aba3ed 100644
+--- a/cmake_modules/rocprofiler_env.cmake
++++ b/cmake_modules/rocprofiler_env.cmake
+@@ -36,6 +36,7 @@ if(ROCPROFILER_DEBUG_TRACE)
+     target_compile_definitions(rocprofiler-build-flags INTERFACE DEBUG_TRACE=1)
+ endif()
+
++set(ROCPROFILER_LD_AQLPROFILE false)
+ # Enable direct loading of AQL-profile HSA extension
+ if(ROCPROFILER_LD_AQLPROFILE)
+     target_compile_definitions(rocprofiler-build-flags INTERFACE ROCP_LD_AQLPROFILE=1)
+@@ -80,9 +81,3 @@ if("${ROCM_ROOT_DIR}" STREQUAL "")
+     message(FATAL_ERROR "ROCM_ROOT_DIR is not found.")
+ endif()
+
+-find_library(
+-    HSA_AMD_AQLPROFILE_LIBRARY
+-    NAMES hsa-amd-aqlprofile64
+-    HINTS ${CMAKE_PREFIX_PATH}
+-    PATHS ${ROCM_ROOT_DIR}
+-    PATH_SUFFIXES lib REQUIRED)
+diff --git a/src/util/hsa_rsrc_factory.cpp b/src/util/hsa_rsrc_factory.cpp
+index 2c47186..6b39634 100644
+--- a/src/util/hsa_rsrc_factory.cpp
++++ b/src/util/hsa_rsrc_factory.cpp
+@@ -155,17 +155,6 @@ HsaRsrcFactory::HsaRsrcFactory(bool initialize_hsa) : initialize_hsa_(initialize
+   if (kern_arg_pool_ == nullptr)
+     CHECK_STATUS("Kern-arg memory pool is not found", HSA_STATUS_ERROR);
+
+-  // Get AqlProfile API table
+-  aqlprofile_api_ = {};
+-#ifdef ROCP_LD_AQLPROFILE
+-  status = LoadAqlProfileLib(&aqlprofile_api_);
+-#else
+-  status = hsa_api_.hsa_system_get_major_extension_table(HSA_EXTENSION_AMD_AQLPROFILE,
+-                                                         hsa_ven_amd_aqlprofile_VERSION_MAJOR,
+-                                                         sizeof(aqlprofile_api_), &aqlprofile_api_);
+-#endif
+-  CHECK_STATUS("aqlprofile API table load failed", status);
+-
+   // Get Loader API table
+   loader_api_ = {};
+   status = hsa_api_.hsa_system_get_major_extension_table(HSA_EXTENSION_AMD_LOADER, 1,
+diff --git a/test/util/hsa_rsrc_factory.cpp b/test/util/hsa_rsrc_factory.cpp
+index 0a44d18..fab5b75 100644
+--- a/test/util/hsa_rsrc_factory.cpp
++++ b/test/util/hsa_rsrc_factory.cpp
+@@ -137,17 +137,6 @@ HsaRsrcFactory::HsaRsrcFactory(bool initialize_hsa) : initialize_hsa_(initialize
+   if (cpu_pool_ == NULL) CHECK_STATUS("CPU memory pool is not found", HSA_STATUS_ERROR);
+   if (kern_arg_pool_ == NULL) CHECK_STATUS("Kern-arg memory pool is not found", HSA_STATUS_ERROR);
+
+-  // Get AqlProfile API table
+-  aqlprofile_api_ = {0};
+-#ifdef ROCP_LD_AQLPROFILE
+-  status = LoadAqlProfileLib(&aqlprofile_api_);
+-#else
+-  status = hsa_api_.hsa_system_get_major_extension_table(HSA_EXTENSION_AMD_AQLPROFILE,
+-                                                         hsa_ven_amd_aqlprofile_VERSION_MAJOR,
+-                                                         sizeof(aqlprofile_api_), &aqlprofile_api_);
+-#endif
+-  CHECK_STATUS("aqlprofile API table load failed", status);
+-
+   // Get Loader API table
+   loader_api_ = {0};
+   status = hsa_api_.hsa_system_get_major_extension_table(HSA_EXTENSION_AMD_LOADER, 1,
