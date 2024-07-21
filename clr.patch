@@ -1,0 +1,14 @@
+diff --git a/hipamd/src/hip_mempool.cpp b/hipamd/src/hip_mempool.cpp
+index c7f302cbf..75adfe37d 100644
+--- a/hipamd/src/hip_mempool.cpp
++++ b/hipamd/src/hip_mempool.cpp
+@@ -32,7 +32,8 @@ namespace {
+ inline bool IsMemPoolValid(MemoryPool* mem_pool) {
+   bool result = false;
+   for (auto it : g_devices) {
+-    if (result = it->IsMemoryPoolValid(mem_pool) == true) {
++    result = it->IsMemoryPoolValid(mem_pool);
++    if (result == true) {
+       break;
+     }
+   }
